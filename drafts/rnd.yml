@@ -1,0 +1,10 @@
+---
+- hosts: linux
+  become: true
+  remote_user: root
+
+  tasks:
+  - debug:
+      msg: "{{ lookup('file', '/dev/null')| to_uuid }}"
+  - shell: whoami 
+...

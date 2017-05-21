@@ -1,0 +1,39 @@
+- hosts: linux
+  vars:
+    http_port: 80
+    max_clients: 200
+  #become: true  
+  #become_user: root
+  
+  tasks:
+   - name: test shell task
+     shell: "whoami"
+     register: TestShellOutput
+     become: true
+     become_user: root
+ 
+   - debug:
+      msg: "{{TestShellOutput |  from_yaml }}"
+   - debug:
+      msg: "{{ 9198218812918 |  random | to_uuid }}"
+- hosts: deb2 deb1
+  tasks:
+  - user:
+     name: ansible    
+     groups: sudo
+     password: "{{ 'Acer8888'| password_hash('sha512') }}"
+     shell: "/bin/bash" 
+    become_user: root
+    become: true
+    register: TestUserOutput
+
+  - authorized_key:
+     user: ansible
+     state: present
+     key: "{{ lookup('file', '/home/ansible/.ssh/id_rsa.pub') }}"
+    become_user: root
+    become: true
+ 
+  - debug:
+      msg: "{{TestUserOutput |  from_yaml }}"
+

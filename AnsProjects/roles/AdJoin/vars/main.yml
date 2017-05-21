@@ -1,0 +1,17 @@
+#ad.vars
+domain_full_lowercase: lab.local
+domain_full_uppercase: LAB.LOCAL
+domain_short_uppercase: LAB
+adauth_username: Administrator
+adauth_password: Acer8888
+ad_sysadmin_group: n3admins
+
+#dns vars
+dns_nameservers: ['192.168.0.106']
+dns_domain: "{{domain_full_lowercase}}"
+dns_searchs:
+   - "{{dns_domain}}"
+dns_dhclient_rule: "supersede" # can be supersede or prepend
+dns_dhclient_file: "/etc/dhcp/dhclient.conf"
+
+

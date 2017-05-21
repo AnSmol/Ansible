@@ -1,0 +1,129 @@
+---
+#Dns-Settings
+- name: Remove resolvconf
+  apt: pkg=resolvconf state=absent
+  tags: [packages,dns]
+
+- name: Ensure dns servers are configured in /etc/resolv.conf
+  template: src=resolv.conf.j2 dest=/etc/resolv.conf
+  tags: [configuration,dns]
+
+- name: Ensure dns servers are configured in dhclient.conf
+  lineinfile:
+     regexp: "#?(supersede|prepend) {{item.name}} "
+     line: "{{dns_dhclient_rule}} {{item.name}} {{item.value}};"
+     dest: "{{dns_dhclient_file}}"
+     state: present
+  with_items:
+    - { name: 'domain-name-servers', value: '{% for nameserver in dns_nameservers %}{{nameserver}}{% if not loop.last %},{% endif %}{% endfor %}' }
+    - { name: 'domain-name', value: '\"{{dns_domain}}\"' }
+    - { name: 'domain-search', value: '{% for domainsearch in dns_searchs %}\"{{domainsearch}}\"{% if not loop.last %}, {% endif %}{% endfor %}' }
+  when: item.value != ""
+  tags: [configuration,dns]
+
+- name: Set FQDN as hostname
+  hostname: 
+      name: "{{ansible_hostname}}.{{domain_full_lowercase}}"
+  tags: [configuration,dns]
+
+
+#Ntp-settings
+- name: Install ntp
+  apt: pkg=ntp state=present update_cache=yes
+  tags: [packages,ntp]
+
+- name: Configure AD-domain as ntp-server
+  template: src=ntp.conf.j2 dest=/etc/ntp.conf
+  notify: restart ntp
+  tags: [configuration,ntp]
+
+
+# tasks file for common
+
+- name: Install realmd
+  apt: pkg=realmd state=present update_cache=yes
+  tags: [packages,ad] 
+
+- name: Get prerequisites list
+  shell: "/usr/sbin/realm discover {{domain_full_lowercase}} --verbose | grep required-package | sed  -E 's/(.*): (.*)/\\2/g'"
+  register: RealmdDepends
+  tags: [configuration,ad]
+
+- name: Install prerequisites
+  package: name={{item}} state=present
+  when: RealmdDepends.stdout_lines | length > 0  
+  with_items: "{{RealmdDepends.stdout_lines}}"
+  tags: [packages,ad]
+
+- name: Install pexpect using pip
+  pip: name=pexpect
+  tags: [packages,ad]
+
+
+- name: Check if machine is alredy in bound
+  shell: /bin/bash -c "realm list | grep sssd"
+  register: realmd_bound
+  changed_when: false
+  ignore_errors: true
+  tags: [configuration,ad]
+
+
+- name: Join Active Directory
+  expect:
+    command: /bin/bash -c "/usr/sbin/realm join {{ domain_full_lowercase }} -U {{ adauth_username }}"
+    responses: 
+      Password for .*: "{{ adauth_password }}"
+  when: realmd_bound|failed
+  register: realmd_join
+  tags: [configuration,ad]
+
+- name: Check if {{ ad_sysadmin_group }} group can login through ssh
+  #command: /bin/bash -c "/usr/sbin/realm list|grep {{ ad_sysadmin_group }}"
+  shell: "/usr/sbin/realm list|grep {{ ad_sysadmin_group }}"
+  register: INFRA_LinuxAdmins_login
+  changed_when: false
+  ignore_errors: true
+  tags: [configuration,ad]
+
+- name: Permit {{ ad_sysadmin_group }} group login
+  shell: "/usr/sbin/realm permit -g {{ ad_sysadmin_group }}" 
+  when: INFRA_LinuxAdmins_login|failed
+  tags: [configuration,ad]
+
+#- name: Generate sssd.conf (1/3)
+#  lineinfile: dest=/etc/sssd/sssd.conf line="use_fully_qualified_names = False"
+#  register: sssd1
+
+#- name: Generate sssd.conf (2/3)
+#  lineinfile: dest=/etc/sssd/sssd.conf state=present regexp="fallback_homedir = /home/%u@%d" line="fallback_homedir = /home/%u/" backrefs=yes 
+#  register: sssd2
+
+#- name: Generate sssd.conf (3/3)
+#  lineinfile: dest=/etc/sssd/sssd.conf line="fallback_homedir = /home/%u/"
+#  register: sssd3
+
+# Prior to ansible 2.2
+#- name: Restart daemon
+#  command: systemctl daemon-reload
+#  when: sssd1.changed or sssd2.changed or sssd3.changed
+
+#- name: Restart sssd
+#  command: systemctl restart sssd
+#  when: sssd1.changed or sssd2.changed or sssd3.changed
+
+# Ansible 2.2
+#- name: Restart sssd
+#  systemd: state=restarted daemon_reload=yes name=sssd
+
+
+- name: Check if {{ ad_sysadmin_group }} group have sudoers rights
+  stat: path=/etc/sudoers.d/{{ ad_sysadmin_group }}
+  register: st
+  tags: [configuration,ad]
+
+
+- name: Add {{ ad_sysadmin_group }} group to sudoers
+  copy: content="%{{ ad_sysadmin_group }} ALL=(ALL) ALL" dest="/etc/sudoers.d/{{ ad_sysadmin_group }}" owner=root group=root mode=044
+  when: st.stat.exists == false
+  tags: [configuration,ad]
+

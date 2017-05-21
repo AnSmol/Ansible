@@ -1,0 +1,8 @@
+---
+- name: Using realmd to connect Linux to Active Directory
+  hosts: localhost
+  become: true
+  remote_user: root
+  roles:
+    - AdJoin
+
