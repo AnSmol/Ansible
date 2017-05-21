@@ -1,7 +1,5 @@
 #ad.vars
 domain_full_lowercase: lab.local
-domain_full_uppercase: LAB.LOCAL
-domain_short_uppercase: LAB
 adauth_username: Administrator
 adauth_password: Acer8888
 ad_sysadmin_group: n3admins
