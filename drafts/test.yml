@@ -1,13 +1,28 @@
 - hosts: deb2
   become: true
   tasks:
-    - shell: 'echo 111'
+    - name: Install prereqs
+      apt: pkg={{item}} state=present update_cache=yes
+      with_items: [git, build-essential, libcurl4-gnutls-dev, postgresql-server-dev-9.6]
+
+    - git:
+       repo: 'https://github.com/pramsey/pgsql-http'
+       dest: '/usr/local/src/pgsql-http'
+       update: no
+
+    - command: "make install"
+      args:
+       chdir: '/usr/local/src/pgsql-http/'
+       creates: '/usr/local/src/pgsql-http/http.o'
+
   roles:
     - role: ANXS.postgresql
+  vars:
       postgresql_version: 9.6
       postgresql_locale: 'ru_RU.UTF-8'
       postgresql_ctype: 'ru_RU.UTF-8'
       postgresql_ext_install_contrib: yes
+      postgresql_ext_install_dev_headers: yes
       postgresql_databases:
        - name: queues
          owner: uouser
