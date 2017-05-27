@@ -1,0 +1,32 @@
+- hosts: linux
+  roles:
+  -  role: ANXS.postgresql
+      postgresql_locale: 'ru_RU.UTF-8'
+      postgresql_ctype: 'ru_RU.UTF-8' 
+      postgresql_ext_install_contrib: yes
+      postgresql_databases:
+       - 'queues'
+       - 'smp'
+       - 'web_patients' 
+      postgresql_users:['uouser']
+      postgresql_pg_hba_passwd_hosts:
+      - '10.0.0.0/8'
+      - '192.168.0.0/16'
+      postgresql_listen_addresses:['*']
+      postgresql_max_connections: 100
+      postgresql_shared_buffers: "{{(ansible_memtotal_mb * 0.2)|int}}"
+      postgresql_effective_cache_size: "{{(ansible_memtotal_mb * 0.75)|int}}"
+      postgresql_work_mem: "{{(ansible_memtotal_mb * 0.02)|int}}"
+      postgresql_maintenance_work_mem: "{{(ansible_memtotal_mb * 0.064)|int}}" 
+      postgresql_min_wal_size = 1GB
+      postgresql_max_wal_size = 2GB
+      postgresql_checkpoint_completion_target = 0.7
+      postgresql_default_statistics_target = 500
+      postgresql_log_checkpoints: on 
+      postgresql_log_line_prefix = '%m %p %u@%d from %h [vxid:%v txid:%x] [%i] ' 
+      postgresql_vacuum_cost_delay = 10
+      postgresql_vacuum_cost_page_hit = 1
+      postgresql_vacuum_cost_page_miss = 1
+      postgresql_vacuum_cost_page_dirty = 10
+      postgresql_vacuum_cost_limit = 1000
+      postgresql_log_min_duration_statement = 3000

@@ -1,0 +1,13 @@
+- hosts: linux
+  vars:
+    http_port: 80
+    max_clients: 200
+  #become: true  
+  #become_user: root
+
+  tasks:
+   - debug:
+      msg: "{{ (ansible_memtotal_mb * 0.8)|int }}"
+   - debug:
+      msg: " {{ ansible_python.version}}"
+
