@@ -27,7 +27,7 @@
 
 # Password hosts
 {% for host in postgresql_pg_hba_passwd_hosts %}
-host  all  all  {{host}}  password
+host  all  all  {{host}}  md5
 {% endfor %}
 
 # Trusted hosts
