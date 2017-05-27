@@ -3,38 +3,57 @@
   tasks:
     - name: Install prereqs
       apt: pkg={{item}} state=present update_cache=yes
-      with_items: [git, build-essential, libcurl4-gnutls-dev, postgresql-server-dev-9.6]
-
-    - git:
-       repo: 'https://github.com/pramsey/pgsql-http'
-       dest: '/usr/local/src/pgsql-http'
+      with_items: ["git", "build-essential", "libcurl4-gnutls-dev", "postgresql-server-dev-{{postgresql_version}}"]
+ 
+    - name: Git clone postgre http-extension
+      git:
+       repo: "https://github.com/pramsey/pgsql-http"
+       dest: "/usr/local/src/pgsql-http"
        update: no
+      register: pghttpdown
 
-    - command: "make install"
+    - name: Postgresql http-extension compiling
+      command: "make install"
       args:
-       chdir: '/usr/local/src/pgsql-http/'
-       creates: '/usr/local/src/pgsql-http/http.o'
+       chdir: "/usr/local/src/pgsql-http/"
+      when: pghttpdown.changed
 
-  roles:
-    - role: ANXS.postgresql
+    - name: Postgresql http-extension installation
+      postgresql_ext:
+       name: http
+       db: queues
+      when: pghttpdown.changed
+ 
+    - name: Set proper owner to http extension 
+      command: psql queues -c "UPDATE pg_extension SET extowner=(select usesysid from pg_user where usename = '{{queuesuser}}') where extname = 'http';"
+      become_user: postgres
+      when: pghttpdown.changed
+
+
+#  roles:
+#    - role: ANXS.postgresql
   vars:
+      queuesuser: uouser
       postgresql_version: 9.6
       postgresql_locale: 'ru_RU.UTF-8'
       postgresql_ctype: 'ru_RU.UTF-8'
       postgresql_ext_install_contrib: yes
       postgresql_ext_install_dev_headers: yes
       postgresql_databases:
-       - name: queues
-         owner: uouser
+       - name: 'queues'
+         owner: '{{queuesuser}}'
        - name: 'smp'
-         owner: uouser
+         owner: '{{queuesuser}}'
        - name: 'web_patients'
-         owner: uouser
+         owner: '{{queuesuser}}'
  
       postgresql_users: 
-       - name: uouser
+       - name: '{{queuesuser}}'
          pass: benQ1234	
          encrypted: yes
+        # role_attr_flags: "SUPERUSER"
+      
+
 #      postgresql_user_privileges:
 #       - name: uouser                # user name
 #         db: queues                  # database
