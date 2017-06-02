@@ -1,7 +1,7 @@
 ---
 - name: Using realmd to connect Linux to Active Directory
-  hosts: deb2, deb1
+  hosts: zabaikal
   become: true
   roles:
-    - AdJoin
+    - AdJoinUbuntu
 

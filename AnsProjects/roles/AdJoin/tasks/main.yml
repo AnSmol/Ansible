@@ -22,16 +22,16 @@
   tags: [configuration,dns]
 
 #This step is nesessary to prefent sudo from throwing error and preventing normal ansible work
-- name: Set FQDN as hostname 1/2
-  lineinfile:
-   line: "127.0.1.1 {{ansible_hostname}}.{{domain_full_lowercase}}"
-   path: "/etc/hosts"
-  tags: [configuration,dns]
+#- name: Set FQDN as hostname 1/2
+#  lineinfile:
+#   line: "127.0.1.1 {{ansible_hostname}}.{{domain_full_lowercase}}"
+#   path: "/etc/hosts"
+#  tags: [configuration,dns]
 
-- name: Set FQDN as hostname 2/2
-  hostname: 
-      name: "{{ansible_hostname}}.{{domain_full_lowercase}}"
-  tags: [configuration,dns]
+#- name: Set FQDN as hostname 2/2
+#  hostname: 
+#      name: "{{ansible_hostname}}.{{domain_full_lowercase}}"
+#  tags: [configuration,dns]
 
 
 #Ntp-settings

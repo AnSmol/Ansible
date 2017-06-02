@@ -1,0 +1,25 @@
+#ad.vars
+#domains:
+# - name: hq.n3zdrav.ru
+#   join_account: Administrator
+#   join_password: lCosdxf096WSAHcJivm3
+#   sysadmin_groups: 
+#    - hqAdmins
+
+# - name: r75.n3zdrav.ru
+#   join_account: Administrator
+#   join_password: lCosdxf096WSAHcJivm3
+#   sysadmin_groups:
+#    - Domain Admins
+# n3gateway: 10.2.0.100
+#chouse 1 domain to use as ntp-server
+#ntpsource: domains[0]
+#dns vars
+
+
+
+#dns_nameservers: 
+#  - "10.2.0.15"
+
+#dns_dhclient_rule: "supersede" # can be supersede or prepend
+#dns_dhclient_file: "/etc/dhcp/dhclient.conf"

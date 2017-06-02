@@ -1,0 +1,11 @@
+---
+# Handler to handle DB tier notifications
+
+- name: restart ntp
+  service: name=ntp state=restarted
+
+- name: restart sssd
+  service: name=sssd state=restarted
+
+
+...

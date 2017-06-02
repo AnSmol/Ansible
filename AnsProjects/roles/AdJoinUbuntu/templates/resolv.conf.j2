@@ -1,0 +1,6 @@
+# {{ ansible_managed }}
+{% for nameserver in dns_nameservers %}
+nameserver {{nameserver}}
+{% endfor %}
+nameserver 77.88.8.8
+search {% for domain in domains %}{{domain.name}} {% endfor %}
