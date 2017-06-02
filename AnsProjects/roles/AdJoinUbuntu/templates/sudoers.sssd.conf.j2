@@ -1,7 +1,7 @@
 {% for domain in domains %}
 {% for sysadmin_group in domain.sysadmin_groups %}
 
-{{sysadmin_group}}@{{domain.name|lower}} ALL=(ALL) ALL
+{{sysadmin_group}} ALL=(ALL) ALL
 
 {% endfor %}
 {% endfor %}
